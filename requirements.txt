@@ -1,0 +1,23 @@
+# Web Framework and UI
+streamlit
+
+# LLM Interaction
+ollama
+
+# PDF and Document Processing
+pypdf
+reportlab
+
+# Image Processing and OCR
+easyocr
+opencv-python-headless
+numpy
+Pillow
+
+# PII Detection and Anonymization
+presidio-analyzer
+presidio-anonymizer
+spacy
+
+# Networking and Alerts
+requests
