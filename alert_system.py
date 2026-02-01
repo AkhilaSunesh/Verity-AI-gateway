@@ -2,51 +2,60 @@ import requests
 from datetime import datetime
 
 # ==========================================
-# PASTE YOUR DISCORD WEBHOOK URL BELOW
-# It should look like: "https://discord.com/api/webhooks/..."
+# 1. PASTE YOUR COPIED DISCORD WEBHOOK URL BELOW
+#    It must start with "https://discord.com/api/webhooks/..."
 # ==========================================
-WEBHOOK_URL = "https://discord.com/api/webhooks/1467549446064570378/FmRIZdiIwLxNJI-GMQWf3Ti-Bz7WHmMi1RkSvGzCLkcpO1EwnhKoWWtD7zCyueCscBfc" 
+WEBHOOK_URL = "https://discord.com/api/webhooks/1467549446064570378/FmRIZdiIwLxNJI-GMQWf3Ti-Bz7WHmMi1RkSvGzCLkcpO1EwnhKoWWtD7zCyueCscBfc"  # <--- DELETE THIS & PASTE YOUR URL
 
 def alert_security_team(user_input, reason, user_id="demo_user"):
-    """
-    Sends a rich formatted alert to Discord when a threat is detected.
-    """
-    print(f"🚨 Sending Alert: {reason}") # This prints to your screen
-    
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    # This 'embed' structure makes it look professional in Discord
-    embed = {
-        "title": "🚨 AI Gateway Security Alert",
-        "description": "A threat was intercepted and blocked.",
-        "color": 0xFF0000, # Red color for danger
-        "fields": [
-            {"name": "User", "value": user_id, "inline": True},
-            {"name": "Time", "value": timestamp, "inline": True},
-            {"name": "Detection Reason", "value": reason, "inline": False},
-            {"name": "Blocked Content", "value": f"```{user_input[:200]}...```", "inline": False}
-        ],
-        "footer": {"text": "Sandboxed AI Gateway • Security Team"}
-    }
-    
-    data = {"embeds": [embed]}
-    
-    try:
-        # This acts like hitting "Send"
-        response = requests.post(WEBHOOK_URL, json=data, timeout=3)
-        
-        if response.status_code == 204:
-            print("✅ Alert sent successfully! Check Discord.")
-        else:
-            print(f"⚠️ Failed to send alert. Error code: {response.status_code}")
-    except Exception as e:
-        print(f"❌ Error sending alert: {e}")
+    """
+    Sends a formatted alert to Discord when a threat is detected.
+    """
+    if "https://" not in WEBHOOK_URL:
+        print("❌ Error: Webhook URL not set in alert_system.py")
+        return
 
-# --- TEST BLOCK (This runs when you press Play) ---
+    print(f"🚨 Sending Alert: {reason}")
+    
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Logic: If it's a "User Override" (Redacted), use Orange. If Blocked, use Red.
+    if "Override" in reason or "Redacted" in reason:
+        color = 0xFFA500 # Orange (Warning)
+        title = "⚠️ Security Warning: User Override"
+        desc = "User authorized processing of redacted content."
+    else:
+        color = 0xFF0000 # Red (Danger)
+        title = "🚨 Security Alert: Threat Blocked"
+        desc = "A malicious file or image was intercepted."
+
+    # Build the Discord Embed Card
+    embed = {
+        "title": title,
+        "description": desc,
+        "color": color,
+        "fields": [
+            {"name": "👤 User ID", "value": str(user_id), "inline": True},
+            {"name": "⏰ Time", "value": timestamp, "inline": True},
+            {"name": "🛡️ Detection Reason", "value": reason, "inline": False},
+            {"name": "📄 Content Snippet", "value": f"```{str(user_input)[:200]}...```", "inline": False}
+        ],
+        "footer": {"text": "Verity Gateway • Security Ops"}
+    }
+    
+    data = {"embeds": [embed]}
+    
+    try:
+        response = requests.post(WEBHOOK_URL, json=data, timeout=3)
+        if response.status_code == 204:
+            print("✅ Alert sent to Discord!")
+        else:
+            print(f"⚠️ Discord rejected the alert (Status: {response.status_code})")
+    except Exception as e:
+        print(f"❌ Error sending alert: {e}")
+
+# --- TEST BLOCK ---
+# Run this file directly (python alert_system.py) to test the connection
 if __name__ == "__main__":
-    # We are simulating a fake hacker to see if it works
-    alert_security_team(
-        user_input="I need to bypass the mainframe using the confidential passwords.", 
-        reason="Confidential Keyword Detected", 
-        user_id="Hacker_X"
-    )
+    alert_security_team("CONFIDENTIAL_PASSWORD_123", "Manual Test: Blocked Password", "Admin_User")
+
